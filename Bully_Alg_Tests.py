@@ -87,6 +87,54 @@ class TestCorrectness(unittest.TestCase):
 
 
 # -------------------------------------------------
+# 1b. BASIC TESTS (enkle scenarier)
+# -------------------------------------------------
+class TestBullyAlgorithms(unittest.TestCase):
+
+    # Begge algoritmer skal finde P5,
+    # fordi P6 er crashed.
+    def test_correct_leader(self):
+        alive = [True, True, True, True, True, False]
+
+        leader1, messages1 = run_both(2, alive)[0][0], run_both(2, alive)[0][1]
+        leader2, messages2 = run_both(2, alive)[1][0], run_both(2, alive)[1][1]
+
+        self.assertEqual(leader1, 5)
+        self.assertEqual(leader2, 5)
+
+    # Hvis alle højere processer er døde,
+    # skal start-processen selv blive leader.
+    def test_start_process_becomes_leader(self):
+        alive = [True, True, True, False, False]
+
+        leader1, messages1 = run_both(3, alive)[0][0], run_both(3, alive)[0][1]
+        leader2, messages2 = run_both(3, alive)[1][0], run_both(3, alive)[1][1]
+
+        self.assertEqual(leader1, 3)
+        self.assertEqual(leader2, 3)
+
+    # Hvis højeste proces lever,
+    # skal den vælges.
+    def test_highest_process_wins(self):
+        alive = [True, True, True, True, True]
+
+        leader1, messages1 = run_both(2, alive)[0][0], run_both(2, alive)[0][1]
+        leader2, messages2 = run_both(2, alive)[1][0], run_both(2, alive)[1][1]
+
+        self.assertEqual(leader1, 5)
+        self.assertEqual(leader2, 5)
+
+    # I vores normale failure-scenario
+    # skal improved bruge færre beskeder.
+    def test_improved_uses_fewer_messages(self):
+        alive = [True, True, True, True, True, False]
+
+        (leader1, original_messages), (leader2, improved_messages) = run_both(2, alive)
+
+        self.assertLess(improved_messages, original_messages)
+
+
+# -------------------------------------------------
 # 2. BESKEDTAL (håndudledte værdier + formel)
 # -------------------------------------------------
 class TestMessageCounts(unittest.TestCase):
