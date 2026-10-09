@@ -1,6 +1,7 @@
 import unittest
 import random
 import io
+import time
 from contextlib import redirect_stdout
 
 
@@ -174,6 +175,39 @@ class TestBenchmark(unittest.TestCase):
         alive = [True] * 999 + [False]
         (_, mo), (_, mi) = run_both(1, alive)
         self.assertAlmostEqual(1 - mi / mo, 2 / 3, places=2)
+
+
+# -------------------------------------------------
+# 3b. BIG-O SKALERING (tid / arbejde)
+# -------------------------------------------------
+class TestBigO(unittest.TestCase):
+
+    def _measure_runtime(self, func, n, repeats):
+        alive = [True] * n
+        start = time.perf_counter()
+        for _ in range(repeats):
+            quiet(func, 1, alive)
+        return time.perf_counter() - start
+
+    def test_original_algorithm_scales_about_quadratically(self):
+        """Når n dobles, skal original-bully grov omtrent 4x."""
+        sizes = [40, 80, 160]
+        times = [self._measure_runtime(bully_election, n, repeats=30) for n in sizes]
+
+        for i in range(1, len(times)):
+            ratio = times[i] / times[i - 1]
+            self.assertGreater(ratio, 2.5, msg=(sizes[i], sizes[i - 1], ratio))
+            self.assertLess(ratio, 8.0, msg=(sizes[i], sizes[i - 1], ratio))
+
+    def test_improved_algorithm_scales_about_linearly(self):
+        """Når n dobles, skal forbedret-bully grov omtrent 2x."""
+        sizes = [40, 80, 160]
+        times = [self._measure_runtime(improved_bully, n, repeats=200) for n in sizes]
+
+        for i in range(1, len(times)):
+            ratio = times[i] / times[i - 1]
+            self.assertGreater(ratio, 1.4, msg=(sizes[i], sizes[i - 1], ratio))
+            self.assertLess(ratio, 3.5, msg=(sizes[i], sizes[i - 1], ratio))
 
 
 # -------------------------------------------------
