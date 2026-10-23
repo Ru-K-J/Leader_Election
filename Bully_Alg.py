@@ -1,170 +1,132 @@
-# ORIGINAL BULLY ALGORITHM
 def bully_election(start_process, alive):
 
-    # Vi starter med den proces, som opdager at lederen er død
-    current_process = start_process
-
-    # Vi tæller beskeder, så vi senere kan sammenligne algoritmerne
     messages = 0
+    leader = None
+    election_started = [False] * len(alive)
 
-    while True:
+    def election(process):
 
-        print("\nP" + str(current_process) + " starter et election")
+        nonlocal messages, leader
 
-        # Her gemmer vi de processer med højere ID, som svarer
-        answers = []
+        if election_started[process - 1]:
+            return
 
-        # Kig på alle processer med højere ID
-        for process in range(current_process + 1, len(alive) + 1):
+        election_started[process - 1] = True
+        print("\nP" + str(process) + " starter ELECTION")
 
-            # Den nuværende proces sender ELECTION
-            print("P" + str(current_process) +
-                  " -> P" + str(process) +
+        higher_alive = []
+
+        # Send ELECTION til alle processer med højere ID
+        for higher in range(process + 1, len(alive) + 1):
+
+            print("P" + str(process) +
+                  " -> P" + str(higher) +
                   ": ELECTION")
 
-            messages = messages + 1
+            messages += 1
 
-            # Hvis processen stadig lever, svarer den OK
-            if alive[process - 1] == True:
+            # Levende processer svarer OK
+            if alive[higher - 1]:
 
-                print("P" + str(process) +
-                      " -> P" + str(current_process) +
+                print("P" + str(higher) +
+                      " -> P" + str(process) +
                       ": OK")
 
-                messages = messages + 1
+                messages += 1
+                higher_alive.append(higher)
 
-                # Gem processen som en, der kan overtage election
-                answers.append(process)
+        # Ingen højere proces svarede
+        if len(higher_alive) == 0:
 
-        # Hvis ingen højere processer svarede,
-        # er current_process den højeste levende proces
-        if len(answers) == 0:
+            leader = process
+            print("\nP" + str(leader) + " bliver COORDINATOR")
+            return
 
-            leader = current_process
+        # Processer der svarede OK overtager election
+        for higher in higher_alive:
+            election(higher)
 
-            print("\nP" + str(leader) + " bliver ny leader")
+    election(start_process)
 
-            break
+    # Leader fortæller de andre at den er coordinator
+    for process in range(1, leader):
 
-        # Ellers fortsætter den højeste proces, der svarede
-        current_process = max(answers)
-
-
-    # Den nye leader fortæller de andre,
-    # at den nu er coordinator
-    for process in range(1, len(alive) + 1):
-
-        if alive[process - 1] == True and process != leader:
+        if alive[process - 1]:
 
             print("P" + str(leader) +
                   " -> P" + str(process) +
                   ": COORDINATOR")
 
-            messages = messages + 1
-
+            messages += 1
 
     return leader, messages
 
-
-# -------------------------------------------------
-# FORBEDRET BULLY ALGORITHM
-# -------------------------------------------------
 
 def improved_bully(start_process, alive):
 
     messages = 0
 
-    print("\nP" + str(start_process) +
-          " starter forbedret election")
+    print("\nP" + str(start_process) + " starter ELECTION")
 
-    # Start med den proces, der har det højeste ID.
-    #
-    # Hvis vi finder en levende proces,
-    # ved vi med det samme, at den skal være leader.
+    # Start med højeste ID
     for process in range(len(alive), start_process, -1):
 
         print("P" + str(start_process) +
               " -> P" + str(process) +
-              ": ARE YOU ALIVE?")
+              ": ELECTION")
 
-        messages = messages + 1
+        messages += 1
 
-        # Hvis processen lever, har vi fundet
-        # den højeste levende proces
-        if alive[process - 1] == True:
+        if alive[process - 1]:
 
             print("P" + str(process) +
                   " -> P" + str(start_process) +
-                  ": YES")
+                  ": OK")
 
-            messages = messages + 1
-
+            messages += 1
             leader = process
-
-            # Stop med at lede
             break
 
     else:
-        # Hvis ingen højere proces lever,
-        # bliver start_process selv leader
         leader = start_process
 
+    print("\nP" + str(leader) + " bliver COORDINATOR")
 
-    print("\nP" + str(leader) + " bliver ny leader")
+    for process in range(1, leader):
 
-
-    # Leader fortæller alle andre levende processer,
-    # at den nu er coordinator
-    for process in range(1, len(alive) + 1):
-
-        if alive[process - 1] == True and process != leader:
+        if alive[process - 1]:
 
             print("P" + str(leader) +
                   " -> P" + str(process) +
                   ": COORDINATOR")
 
-            messages = messages + 1
-
+            messages += 1
 
     return leader, messages
 
 
-# -------------------------------------------------
-# EKSEMPEL
-# -------------------------------------------------
-
-# Vi har 6 processer:
-#
-# P1 P2 P3 P4 P5 P6
-#
-# True betyder at processen lever
-# False betyder at processen er crashed
-
+# True = lever, False = crashed
 alive = [
     True,   # P1
     True,   # P2
     True,   # P3
     True,   # P4
     True,   # P5
-    False   # P6 er crashed
+    False   # P6
 ]
 
 
-# P6 var leader.
-# P2 opdager at P6 ikke længere virker
-# og starter derfor election.
-
-
 print("ORIGINAL BULLY")
+
 leader, messages = bully_election(2, alive)
 
-print("\nLeader:", leader)
+print("\nLeader: P" + str(leader))
 print("Antal beskeder:", messages)
 
 
-print("FORBEDRET BULLY")
+print("\nFORBEDRET BULLY")
 
 leader, messages = improved_bully(2, alive)
 
-print("\nLeader:", leader)
+print("\nLeader: P" + str(leader))
 print("Antal beskeder:", messages)
