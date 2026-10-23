@@ -3,6 +3,7 @@ import random
 import io
 import time
 from contextlib import redirect_stdout
+from Bully_Alg import bully_election, improved_bully
 
 
 def quiet(f, *args):
@@ -20,8 +21,10 @@ def expected(s, alive):
     n, A = len(alive), sum(alive)
     L = max(i + 1 for i, x in enumerate(alive) if x)
     if L > s:
-        a = sum(alive[s:])  # levende i (s, n]
-        return L, (n - s) + a + (n - L) + (A - 1), (n - L + 1) + 1 + (A - 1)
+        # I original Bully kører s samt alle levende processer > s hver én election()
+        initiators = [s] + [p for p in range(s + 1, n + 1) if alive[p - 1]]
+        orig_election = sum((n - p) + sum(alive[p:]) for p in initiators)
+        return L, orig_election + (A - 1), (n - L + 1) + 1 + (A - 1)
     return L, (n - s) + (A - 1), (n - s) + (A - 1)
 
 
@@ -141,11 +144,11 @@ class TestMessageCounts(unittest.TestCase):
 
     def test_hand_derived(self):
         cases = [  # (alive, s, leder, orig, forb)
-            ([True] * 5 + [False], 2, 5, 12, 7),
-            ([True, True, True, False, True, True, True, False, False, False], 2, 7, 20, 10),
+            ([True] * 5 + [False], 2, 5, 20, 7),
+            ([True, True, True, False, True, True, True, False, False, False], 2, 7, 42, 10),
             ([True, False, False, False], 1, 1, 3, 3),
-            ([True] * 3, 1, 3, 6, 4),
-            ([True] * 6, 2, 6, 13, 7),
+            ([True] * 3, 1, 3, 8, 4),
+            ([True] * 6, 2, 6, 25, 7),
             ([True], 1, 1, 0, 0),
             ([True] * 6, 6, 6, 5, 5),
         ]
@@ -202,27 +205,28 @@ class TestMessageCounts(unittest.TestCase):
 # -------------------------------------------------
 class TestBenchmark(unittest.TestCase):
 
-    EXPECTED = {  # N: (orig, forb, besparelse %)
-        5: (11, 6, 45.45),
-        10: (26, 11, 57.69),
-        25: (71, 26, 63.38),
-        50: (146, 51, 65.07),
-        100: (296, 101, 65.88),
+    EXPECTED = {  # N: (orig = N^2 - N - 1, forb = N + 1, besparelse %)
+        5: (19, 6, 68.42),
+        10: (89, 11, 87.64),
+        25: (599, 26, 95.66),
+        50: (2449, 51, 97.92),
+        100: (9899, 101, 98.98),
     }
 
     def test_closed_form_and_table(self):
         for n, (orig, imp, red) in self.EXPECTED.items():
             alive = [True] * (n - 1) + [False]
             (_, mo), (_, mi) = run_both(1, alive)
-            self.assertEqual(mo, 3 * n - 4)
+            self.assertEqual(mo, n * n - n - 1)
             self.assertEqual(mi, n + 1)
             self.assertEqual((mo, mi), (orig, imp))
             self.assertEqual(round((1 - mi / mo) * 100, 2), red)
 
-    def test_savings_approach_two_thirds(self):
-        alive = [True] * 999 + [False]
+    def test_savings_approach_one_hundred_percent(self):
+        """Når N vokser, nærmer 1 - (N+1)/(N^2-N-1) sig 100% (1.0)."""
+        alive = [True] * 499 + [False]
         (_, mo), (_, mi) = run_both(1, alive)
-        self.assertAlmostEqual(1 - mi / mo, 2 / 3, places=2)
+        self.assertAlmostEqual(1 - mi / mo, 1.0, places=2)
 
 
 # -------------------------------------------------
@@ -281,4 +285,5 @@ class TestInvalidInput(unittest.TestCase):
 # -------------------------------------------------
 # UDFØRELSE (Jupyter-sikker)
 # -------------------------------------------------
-unittest.main(argv=[''], verbosity=2, exit=False)
+if __name__ == "__main__":
+    unittest.main(argv=[''], verbosity=2, exit=False)
