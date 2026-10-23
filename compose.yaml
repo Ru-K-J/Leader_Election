@@ -1,0 +1,59 @@
+services:
+
+  p1:
+    image: bully-original
+    container_name: p1
+    command: ["1"]
+    networks:
+      - bully-network
+    stdin_open: true
+    tty: true
+
+  p2:
+    image: bully-original
+    container_name: p2
+    command: ["2"]
+    networks:
+      - bully-network
+    stdin_open: true
+    tty: true
+
+  p3:
+    image: bully-original
+    container_name: p3
+    command: ["3"]
+    networks:
+      - bully-network
+    stdin_open: true
+    tty: true
+
+  p4:
+    image: bully-original
+    container_name: p4
+    command: ["4"]
+    networks:
+      - bully-network
+    stdin_open: true
+    tty: true
+
+  p5:
+    image: bully-original
+    container_name: p5
+    command: ["5"]
+    networks:
+      - bully-network
+    stdin_open: true
+    tty: true
+
+  p6:
+    image: bully-original
+    container_name: p6
+    command: ["6"]
+    networks:
+      - bully-network
+    stdin_open: true
+    tty: true
+
+networks:
+  bully-network:
+    external: true

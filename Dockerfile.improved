@@ -1,0 +1,7 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY improved_bully_node.py .
+
+ENTRYPOINT ["python3", "improved_bully_node.py"]
