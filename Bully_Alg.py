@@ -1,5 +1,8 @@
 def bully_election(start_process, alive):
 
+    if not (1 <= start_process <= len(alive)) or not alive[start_process - 1]:
+        raise ValueError("start_process skal være en levende proces i 1..N")
+
     messages = 0
     leader = None
     election_started = [False] * len(alive)
@@ -63,6 +66,9 @@ def bully_election(start_process, alive):
 
 
 def improved_bully(start_process, alive):
+
+    if not (1 <= start_process <= len(alive)) or not alive[start_process - 1]:
+        raise ValueError("start_process skal være en levende proces i 1..N")
 
     messages = 0
 
