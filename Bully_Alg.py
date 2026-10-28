@@ -111,28 +111,17 @@ def improved_bully(start_process, alive):
     return leader, messages
 
 
-# True = lever, False = crashed
-alive = [
-    True,   # P1
-    True,   # P2
-    True,   # P3
-    True,   # P4
-    True,   # P5
-    False   # P6
-]
+if __name__ == "__main__":
 
+    # True = lever, False = crashed
+    alive = [True, True, True, True, True, False]   # P1..P5 lever, P6 crashed
 
-print("ORIGINAL BULLY")
+    print("ORIGINAL BULLY")
+    leader, messages = bully_election(2, alive)
+    print("\nLeader: P" + str(leader))
+    print("Antal beskeder:", messages)
 
-leader, messages = bully_election(2, alive)
-
-print("\nLeader: P" + str(leader))
-print("Antal beskeder:", messages)
-
-
-print("\nFORBEDRET BULLY")
-
-leader, messages = improved_bully(2, alive)
-
-print("\nLeader: P" + str(leader))
-print("Antal beskeder:", messages)
+    print("\nFORBEDRET BULLY")
+    leader, messages = improved_bully(2, alive)
+    print("\nLeader: P" + str(leader))
+    print("Antal beskeder:", messages)
