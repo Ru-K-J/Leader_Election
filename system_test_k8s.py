@@ -18,20 +18,20 @@ def k8s_post(pod_index: int, path: str, payload: dict = None) -> dict:
 
 class TestKubernetesSystem(unittest.TestCase):
 
-    def setUp(self):
+def setUp(self):
         # Gør P1..P5 (bully-0..4) levende og P6 (bully-5) crashed
         for i in range(5):
-            k8s_post(i, "/control/crash", {"crashed": False})
-        k8s_post(5, "/control/crash", {"crashed": True})
+            k8s_post(i, "/crash", {"crashed": False})
+        k8s_post(5, "/crash", {"crashed": True})
 
     def test_system_original_bully(self):
         # P2 (bully-1) starter original election -> Forventer Leader=5, Messages=12
-        res = k8s_post(1, "/run/original")
+        res = k8s_post(1, "/election/original")
         self.assertEqual((res["leader"], res["messages"]), (5, 12))
 
     def test_system_improved_bully(self):
         # P2 (bully-1) starter improved election -> Forventer Leader=5, Messages=7
-        res = k8s_post(1, "/run/improved")
+        res = k8s_post(1, "/election/improved")
         self.assertEqual((res["leader"], res["messages"]), (5, 7))
 
 if __name__ == "__main__":
